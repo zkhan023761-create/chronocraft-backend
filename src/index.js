@@ -22,6 +22,9 @@ const { resolveTenantFromHeader } = require('./middleware/tenantScope');
 
 const app = express();
 
+// Trust reverse proxy (Render, Vercel) to resolve correct client IP for rate limiting
+app.set('trust proxy', 1);
+
 // ── Compatibility layer: Map id to _id and snake_case to camelCase in all JSON responses for Client ──
 app.use((req, res, next) => {
   const originalJson = res.json;
