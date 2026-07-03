@@ -86,11 +86,27 @@ app.use((req, res, next) => {
 app.use(helmet());
 app.use(
   cors({
-    origin: [
-      'http://localhost:3000',
-      'https://chronocraft-client.vercel.app',
-      process.env.CORS_ORIGIN
-    ].filter(Boolean),
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'https://chronocraft-client.vercel.app',
+        'https://chronocraft-frontend-iota.vercel.app',
+        process.env.CORS_ORIGIN
+      ].filter(Boolean);
+      
+      const isAllowed = allowedOrigins.some(o => o === origin) || 
+                        origin.endsWith('.vercel.app') || 
+                        origin.startsWith('http://localhost:');
+                        
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
@@ -111,7 +127,7 @@ app.use('/api', generalLimiter);
 // ── Routes ────────────────────────────────────────────────────────────────────
 // Forgot-password is exempt from rate limiting
 app.post('/api/auth/forgot-password', resolveTenantFromHeader, forgotPassword);
-app.use('/api/auth', authLimiter, resolveTenantFromHeader, authRoutes);
+app.use('/api/auth', resolveTenantFromHeader, authRoutes);
 app.use('/api', productRoutes);
 app.use('/api/orders', orderLimiter);
 app.use('/api', orderRoutes);

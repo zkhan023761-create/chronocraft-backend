@@ -15,6 +15,7 @@ const {
   updateCustomerProfile,
 } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 // ── Validation rules ──────────────────────────────────────────────────────────
 
@@ -33,9 +34,9 @@ const loginValidation = [
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
-router.post('/customer/register', registerValidation, customerRegister);
-router.post('/customer/login', loginValidation, customerLogin);
-router.post('/admin/login', loginValidation, adminLogin);
+router.post('/customer/register', authLimiter, registerValidation, customerRegister);
+router.post('/customer/login', authLimiter, loginValidation, customerLogin);
+router.post('/admin/login', authLimiter, loginValidation, adminLogin);
 router.post('/refresh', refreshToken);
 router.post('/logout', logout);
 
